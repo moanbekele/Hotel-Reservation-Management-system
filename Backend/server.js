@@ -2,13 +2,15 @@ const express = require('express') // express
 const mongoose = require('mongoose'); // mongoose
 const Room = require('./models/roomModel') // Room Model
 const Customer = require('./models/customerModel') // Customer Model
+const Reservation = require('./models/reservationModel') // Reservation Model
+
 const app = express()
 
 app.use(express.json()) // Use JSON requests
 app.use(express.urlencoded({extended: false})) // Use URL Encoded
 
 
-//! routes :. AKA urls in other frame works
+//!!! Routes :. AKA urls in other frame works
 
 // =============================================
 // ---------- Home Start-------------------------
@@ -27,6 +29,12 @@ app.get('/', (req,res) => {  // req == request from client, res == respond to cl
 // =============================================
 // ---------- Home End---------------------------
 // =============================================
+
+
+
+
+
+
 
 
 
@@ -142,6 +150,13 @@ app.delete('/rooms/:id', async(req, res) => {
 
 
 
+
+
+
+
+
+
+
 // =============================================
 // ---------- Customer Start--------------------
 // =============================================
@@ -192,6 +207,8 @@ app.get('/customers/:id', async(req, res) => {
 //------  (Customer)  GET End ---------
 //_____________________________________
 
+
+
 //_______________________________________
 //------ (Customer)  PUT Start --------------
 
@@ -230,11 +247,117 @@ app.delete('/customers/:id', async(req, res) => {
     }
 })
 //------ (Customer)  DELETE End -------------------
-//__________________________________________
+//_________________________________________________
 
 
 // =============================================
 // ---------- Customer End----------------------
+// =============================================
+
+
+
+
+
+
+
+
+
+
+// =============================================
+// ---------- Reservation Start-----------------
+// =============================================
+
+
+//_______________________________________________
+//------  (Reservation) POST Start --------------
+
+app.post('/reservations', async(req, res) => { // 'async' since we used 'await' below and interact with Database
+    try {
+        const reservation = await Reservation.create(req.body)
+        res.status(200).json(reservation);
+
+    } catch (error) {
+        console.log(error.message);
+        res.status(500).json({message: error.message})
+    }
+})
+
+//------  (Reservation)  POST End -------------------
+//_________________________________________________
+
+
+//_________________________________________________
+//------  (Reservation)  GET Start -------------------
+
+// Fetch Every Reservation
+app.get('/reservations', async(req, res) => {
+    try {
+        const reservations = await Reservation.find({}).populate('room').populate('customer');
+        res.status(200).json(reservations)
+    }   catch (error) {
+        // console.log(error.message);
+        res.status(500).json({message: error.message})
+    }
+})
+
+
+// Fetch Reservation By ID
+app.get('/reservations/:id', async(req, res) => {
+    try {
+        const {id} = req.params;
+        const reservation = await Reservation.findById(id);
+        res.status(200).json(reservation)
+    }   catch (error) {
+        // console.log(error.message);
+        res.status(500).json({message: error.message})
+    }
+})
+//------  (Reservation)  GET End ---------
+//_____________________________________
+
+//_______________________________________
+//------ (Reservation)  PUT Start --------------
+
+// Update a Reservation
+app.put('/reservations/:id', async(req, res) => {
+    try {
+        const {id} = req.params;
+        const reservation = await Reservation.findByIdAndUpdate(id, req.body);
+        // Can't Find any reservations in database
+        if(!reservation){
+            return res.status(404).json({message: 'cannot find any reservation with ID ${id}'})
+        }
+        const UpdatedReservation = await(Reservation.findById(id))  // Fetches Updated Result
+        res.status(200).json(UpdatedReservation);
+    } catch(error)  {
+        res.status(500).json({message: error.message})
+    }
+})
+
+//------ (Reservation)  PUT End -------------------
+//_________________________________________________
+
+
+//_________________________________________________
+//------  (Reservation) DELETE Start -----------------
+app.delete('/reservations/:id', async(req, res) => {
+    try {
+        const {id} = req.params;
+        const reservation = await Reservation.findByIdAndDelete(id);
+        // Can't Find any room in database
+        if(!reservation){
+            return res.status(404).json({message: 'cannot find any Reservation with ID ${id}'})
+        }
+        res.status(200).json(Reservation);
+    } catch(error)  {
+        res.status(500).json({message: error.message})
+    }
+})
+//------ (Reservation)  DELETE End -------------------
+//____________________________________________________
+
+// =============================================
+// ---------- Reservation End-------------------
 // =============================================
 
 
